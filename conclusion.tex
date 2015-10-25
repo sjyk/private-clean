@@ -1,0 +1,42 @@
+\section{Limitations and Future Work}
+It is important to understand limitations of the differential privacy model with respect to our model of data cleaning.
+
+\vspace{0.5em}
+
+\noindent \textbf{What GRR Does Not Guarantee: }
+\begin{itemize}
+\item GRR protects the value of an invidual's response not the fact that the invidual exists in the database. For example, existential quanitifcation boolean queries can always be answered accurately even under randomization--though we may not be able to uniquely identify the satisfying record.
+\item Our analysis is presented for a single GRR view. The the analyst requests multiple views the privacy factor drops significantly (exponentially in $p$ and linearly in $\epsilon$).
+\item GRR does not protect individuals against non-private data release outside of the randomized relation.
+\end{itemize}
+
+\vspace{0.5em}
+
+\noindent \textbf{What Local Cleaners Cannot Do: }
+\begin{itemize}
+\item While a number of common techniques can be posed in this way, it does not support falible operations.
+\item They cannot support operations that modify multiple rows such as deduplication.
+\item We require the curator partition the discrete attribute prior creating the GRR views. This means the privacy is not completely independent from the data cleaning.
+\end{itemize}
+
+\vspace{0.5em}
+
+\noindent \textbf{Limitations on Queries: }
+\begin{itemize}
+\item Randomization precludes the use of point-lookup queries.
+\item Answering general aggregate queries in this framework is challenge since empirical bounding techniques such as bootstrap cannot be applied. There is no way to repeatedly draw ``samples" from a GRR view.
+\end{itemize}
+
+\vspace{0.5em}
+
+In terms of these limitations, some of these issues are fundemental to differential privacy (e.g., point-lookup queries), however, we plan to address the others in future work.
+In particular, we want to explore levering more table information, such as functional dependcies, to greatly improve the local cleaning model.
+We believe that if the GRR technique randomizes in a way that respects functional dependency relationships, this can automatically handle some of the partitioning issues that we highlighted.  
+
+\section{Conclusion}
+In this paper, we presented \sys a framework for data cleaning and approximate query processing on differentially private relations.
+We proposed a privacy mechanism called Generalized Randomized Response (GRR) which allows for some level of data manipulation of the raw record values.
+We formalized the class of data cleaning operations that can be supported on a GRR view, and we model the effects of data cleaning as a bipartite graph mapping dirty values to cleaned values.
+We used this graph to estimate false positive values included in aggregate queries with predicates. 
+Finally, we analyzed the system statistically both in the finite-sample case to understand the tradeoff between privacy, cleanability, and query accuracy.
+We showed how this analysis can be inverted to select maximal privacy levels given some constraint on query accuracy or cleanability.

@@ -1,0 +1,223 @@
+\section{Query Processing}
+In the following analysis, we describe how to estimate \sumfunc, \avgfunc, and \countfunc
+queries on cleaned private relations. 
+Recall, that we support queries of the following form:
+\begin{alltt}
+SELECT \textsf{f}(a) FROM R WHERE cond(d)
+\end{alltt}
+As in the previous section, let $d$ be a member of $g_i$ which has $N$ be the number of distinct values, and $l$ be the number of queried attributes.
+
+\subsection{COUNT Estimation}
+We first start with \countfunc queries.
+Let $c_{private}$ be the count on the cleaned GRR view.
+Using the quantities described in the previous section, we can derive that the expected value of this count:
+\[
+\mathbb{E}(c_{private})=c_{true}\tau_p+(S-c_{true})\tau_n
+\]
+Intuitively, this is the true count $c_{true}$ multiplied by the true positive rate, plus the complement multiplied by the false positive rate.
+Solving for $c_{true}$, we find that:
+\[ c_{true} = \frac{\mathbb{E}(c_{private})-S\tau_n}{(\tau_p-\tau_n)} \] 
+Using the properties of expectation, namely conditioning and linearity, we can show that this defines an estimator for $c_{true}$: 
+\[ \widehat{c_{true}} = \mathbb{E}(c_{true} \mid c_{private}) = \frac{c_{private}-S\tau_n}{(\tau_p-\tau_n)} \] 
+Furthermore, this estimator is \emph{unbiased} over all realizations of $c_{private}$.
+
+\vspace{0.5em}
+
+\noindent\textbf{Estimating Count: \textmd{$\hat{c}=\frac{c_{private}-S\tau_n}{(\tau_p-\tau_n)}$}}
+
+
+\subsubsection{Finite-Sample Error}
+Next, we analyze the error in this estimate using non-asymptotic analysis.
+We prove a bound that is valid for all $l$; that is queries of all selectivities.
+We are interested in providing the user a guarantee on the error for any GRR view derived from a dataset of large enough size.
+To bound this estimate in confidence intervals, we can apply Hoeffding's inequality:
+\[
+P(\mid c_{private}-\mathbb{E}(c_{private})\mid\ge t)\le2\exp(-\frac{2t^{2}}{S})
+\]
+With a little bit of algebraic manipulation, we arrive at confidence intervals with probability $1-\alpha$:
+\[
+c_{true}=\widehat{c_{true}}\pm\frac{1}{1-p}\sqrt{\frac{S}{2}\ln(\frac{2}{\alpha})}
+\]
+
+%\subsubsection{Asymptotic Error}
+
+
+\iffalse
+\begin{theorem}
+Given a COUNT query with a predicate that spans $l$ entities out of $N$ possible entities, the result estimate and the confidence intervals are:
+\noindent\textbf{Confidence Intervals with probability $1-\alpha$:}
+\[c_{true}=\hat{c}\pm\frac{1}{1-p}\sqrt{\frac{S}{2}\ln(\frac{2}{\alpha})}\]
+\end{theorem}
+\begin{proof}
+To prove this, first, we formulate an unbiased estimator:
+\[
+\mathbb{E}(c_{private})=c_{true}\tau_p+(S-c_{true})\tau_n
+\]
+\[
+\mathbb{E}(c_{private})=c_{true}(\tau_p-\tau_n)+S\tau_n
+\]
+\[
+\frac{\mathbb{E}(c_{private})-S\tau_n}{(\tau_p-\tau_n)}=c_{true}
+\]
+Then, applying Hoeffding's inequality:
+\[
+P(\mid c_{private}-\mathbb{E}(c_{private})\mid\ge t)\le2\exp(-\frac{2t^{2}}{S})
+\]
+\[
+\sqrt{\frac{S}{2}\ln(\frac{2}{\alpha})}=t
+\]
+It follows that for this estimator:
+\[
+c_{true}=\hat{c}_{true}\pm\frac{1}{1-p}\sqrt{\frac{S}{2}\ln(\frac{2}{\alpha})}
+\]
+\[
+c_{true}=\hat{c}_{true}\pm\frac{\gamma_{\alpha}}{1-p}\sqrt{\frac{S}{2}}
+\]
+\end{proof}
+\fi
+
+\subsection{SUM Estimation}
+Next, we analyze \sumfunc queries.
+It is important to note that unlike \countfunc, the \sumfunc queries also query the numerical attributes with the Laplace randomization mechanism.
+Like before, we first formulate an expression for the true sum $h_{private}$:
+\[
+\mathbb{E}(h_{private})=c_{true}\mu_{true}\tau_p+(S-c_{true})\mu_{false}\tau_n
+\]
+where $\mu_{true}$ the true mean value of the numerical attributes that satisfy the predicate.
+The challenge is that there are two unknown variables $c_{true}\mu_{true}$
+and $\mu_{false}$.
+Thus, the problem is that there is not enough information in this equation to solve for $c_{true}\mu_{true}$.
+So we can apply a trick where we also calculate the sum over the complement as well:
+\[
+\mathbb{E}(h_{private}^{c})=\gamma_n c_{true}\mu_{true}+(S-c_{true})\gamma_p\mu_{false}
+\]
+This is defines a linear system of equations, and solving it arrives at:
+\[
+h_{true} =\frac{(N-lp)\mathbb{E}(h_{private})-(lp)\mathbb{E}(h_{private}^{c})}{(1-p)N}
+\]
+Applying the same expectation trick as before, we can arrive at the following unbiased estimator:
+
+\vspace{0.5em}
+
+\noindent\textbf{Estimating Sum: \textmd{$\frac{(N-lp)h_{private}-(lp)h_{private}^{c}}{(1-p)N}$}}
+
+\subsubsection{Finite-Sample Error}
+Laplace random variables are a class of random variables called sub-gamma random variables.
+Sums of these random variables can be bounded using Bernstein's inequality, resulting in the following bound:
+\[
+h_{true}=\widehat{h_{true}}\pm\frac{1}{(1-p)N}\cdot b(\sqrt{2S\ln(\frac{1}{\alpha})}+\ln(\frac{1}{\alpha}))
+\]
+In this bound, there is an explicit dependence on b which is the numerical randomization.
+
+\subsection{AVG Estimation}
+It turns out that due to a ratio of random variables problem, the intuitive estimator for \avgfunc $\frac{\widehat{h_{true}}}{\widehat{c_{true}}}$ is biased.
+However, empirically, this bias is small and in fact such estimates are sometimes called conditionally unbiased \cite{DBLP:conf/sigmod/HellersteinHW97}.
+
+\vspace{0.5em}
+
+\noindent\textbf{Estimating Average: \textmd{$\frac{\widehat{h_{true}}}{\widehat{c_{true}}}$}}
+
+\vspace{0.5em}
+
+\subsubsection{Finite-Sample Error}
+Confidence intervals can be computed directly from the expressions above by taking the upper confidence interval of $\widehat{h_{true}}$ and dividing it by the lower confidence interval of $\widehat{c_{true}}$, and vice versa.
+To get an approximate analytic form for this interval, we can apply standard error propagation techniques:
+\[
+\delta_{avg} \approx \frac{1}{c_{true}} \cdot  \frac{\delta_{sum}}{\delta_{count}}
+\]
+where $\delta$ denotes the width of the confidence interval.
+This analytic form shows that there is a very strong dependence on the selectivity of the query, namely $\frac{1}{c_{true}}$.
+
+\subsection{Summary}
+We derived query result estimators for \sumfunc, \avgfunc, and \countfunc queries on cleaned GRR views.
+Our analysis reveals a couple of interesting insights.
+First, the error in the query result is linear (as opposed to quadratic or exponential) in the privacy parameters $b$ and $\frac{1}{1-p}$.
+One of the general criticisms of differential privacy is the difficulty of choosing the parameter $\epsilon$.
+Our analysis suggests that in the special case of GRR, the tradeoff between privacy and utility is relatively well behaved.
+As privacy increases, the query result gradually becomes more erroneous.
+This makes it easy to invert these functions to set a desired privacy level.
+
+\begin{example}
+In the running example dataset, let us suppose $p$ is 0.25, there are 25 distinct majors in the dirty relation, and 500 records. We are interested in counting the number of engineering majors (account for 10 out of the initial 25). 
+Suppose, the private count was $300$.
+Using the formula described above $est = \frac{300-500\times10\times.25\times \frac{1}{25}}{.75}= 333.3$.
+The 95\% confidence intervals are $ \pm \frac{1}{.75} \times \sqrt{250} \times \sqrt{\ln \frac 40}= \pm 41$.
+\end{example}
+
+\iffalse
+We can apply the following trick
+
+\begin{theorem}
+Given a SUM query with a predicate that spans $l$ entities out of $N$ possible entities, the result estimate and the confidence intervals are:
+
+\noindent\textbf{Estimating SUM: \textmd{$\hat{m}=\frac{(N-lp)m_{private}-(lp)m_{private}^{c}}{(1-p)N}$}}
+
+\noindent\textbf{Confidence Intervals with probability $1-\alpha$:} 
+\[m_{true}=\hat{m}_{true}\pm\frac{1}{(1-p)N}\cdot b_{i}(\sqrt{2S\ln(\frac{1}{\alpha})}+\ln(\frac{1}{\alpha}))\]
+\end{theorem}
+\begin{proof}
+To prove this, first, we formulate an unbiased estimator:
+\[
+\mathbb{E}(m_{private})=c_{true}[(1-p)+p\frac{l}{N}]\mu_{true}+(S-c_{true})(p\frac{l}{N})\mu_{false}
+\]
+We are interested in estimating the count which is $c_{true}\mu_{true}$:
+\[
+\mathbb{E}(m_{private})=[(1-p)+p\frac{l}{N}]c_{true}\mu_{true}+(S-c_{true})(p\frac{l}{N})\mu_{false}
+\]
+The challenge is that there are two unknown variables $c_{true}\mu_{true}$
+and $\mu_{false}$, so we can apply a trick where we also calculate
+the sum over the complement and solve:
+\[
+\mathbb{E}(m_{private}^{c})=[p\frac{N-l}{N}]c_{true}\mu_{true}+(S-c_{true})(1-p+p\frac{N-l}{N})\mu_{false}
+\]
+This is a linear system of equations, and solving it arrives at:
+\[
+\begin{bmatrix}m_{private}\\
+m_{private}^{c}
+\end{bmatrix}=\begin{bmatrix}(1-p)+p\frac{l}{N} & (S-c_{true})(p\frac{l}{N})\\
+p\frac{N-l}{N} & (S-c_{true})(1-p+p\frac{N-l}{N})
+\end{bmatrix}\begin{bmatrix}c_{true}\mu_{true}\\
+\mu_{false}
+\end{bmatrix}
+\]
+\[
+\begin{bmatrix}(1-p)+p\frac{l}{N} & (S-c_{true})(p\frac{l}{N})\\
+p\frac{N-l}{N} & (S-c_{true})(1-p+p\frac{N-l}{N})
+\end{bmatrix}^{-1}\begin{bmatrix}m_{private}\\
+m_{private}^{c}
+\end{bmatrix}=\begin{bmatrix}c_{true}\mu_{true}\\
+\mu_{false}
+\end{bmatrix}
+\]
+\[
+\frac{1}{(S-c_{true})(1-p+p\frac{N-l}{N})[(1-p)+p\frac{l}{N}]-(S-c_{true})(p\frac{l}{N})p\frac{N-l}{N}}\begin{bmatrix}(S-c_{true})(1-p+p\frac{N-l}{N}) & -(S-c_{true})(p\frac{l}{N})\\
+-p\frac{N-l}{N} & (1-p)+p\frac{l}{N}
+\end{bmatrix}
+\]
+\[
+\frac{1}{S-c_{true}}\cdot\frac{1}{(1-p+p\frac{N-l}{N})[(1-p)+p\frac{l}{N}]-(p\frac{l}{N})p\frac{N-l}{N}}\begin{bmatrix}(S-c_{true})(1-p+p\frac{N-l}{N}) & -(S-c_{true})(p\frac{l}{N})\\
+-p\frac{N-l}{N} & (1-p)+p\frac{l}{N}
+\end{bmatrix}
+\]
+\[
+\frac{1}{S-c_{true}}\cdot\frac{1}{1-p}\begin{bmatrix}(S-c_{true})(1-p+p\frac{N-l}{N}) & -(S-c_{true})(p\frac{l}{N})\\
+-p\frac{N-l}{N} & (1-p)+p\frac{l}{N}
+\end{bmatrix}\begin{bmatrix}m_{private}\\
+m_{private}^{c}
+\end{bmatrix}=\begin{bmatrix}c_{true}\mu_{true}\\
+\mu_{false}
+\end{bmatrix}
+\]
+\[
+c_{true}\mu_{true}=\frac{(1-p+p\frac{N-l}{N})m_{private}-p\frac{l}{N}m_{private}}{1-p}
+\]
+With a little bit of algebra, we can arrive at:
+\[
+c_{true}\mu_{true}=\frac{(N-lp)m_{private}-(lp)m_{private}^{c}}{(1-p)N}
+\]
+Applying Hoeffding's inequality:
+\[
+m_{true}=\hat{m}_{true}\pm\frac{1}{(1-p)N}\cdot b_{i}(\sqrt{2S\ln(\frac{1}{\alpha})}+\ln(\frac{1}{\alpha}))
+\]
+\end{proof}
+\fi

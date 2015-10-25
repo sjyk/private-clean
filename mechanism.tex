@@ -1,0 +1,158 @@
+\section{Generalized Randomized \\ Response (GRR)}
+This section presents our solution to Problem 1 by designing a privacy mechanism that allows for some types of data cleaning.
+
+\subsection{Discrete Attributes}
+Let $g_i$ be a partition of the discrete attribute set.
+Each $g_i$ defines a n-tuple of attributes of $R$.
+Let $Domain(g_i)$ be the set of all the distinct tuple values in $R[g_i]$.
+Then, for each $g_i$, we apply a randomized response mechanism:
+\[
+r'[g_i] = \begin{cases} r[g_i] & \text{w.p } 1-p_i \\ 
+\mathbf{U}(Domain(g_i)) & \text{w.p } p_i \end{cases}
+\]
+where $\mathbf{U}(\cdot)$ selects an element uniformly at random. 
+
+\begin{lemma}[Randomized Response Mechanism]
+With the random replacement mechanism, the projection of each categorical attribute $\Pi(g_i)$ is $\epsilon$-local differentially private, with $\epsilon = \ln (\frac{3}{p_i} - 2)$. 
+\end{lemma}
+
+\iffalse
+\begin{proof}
+Let $N = \mid Domain(g_i) \mid$:
+\[
+\epsilon = \ln \frac{1-p_i + p_i \frac{1}{N}}{p_i \frac{N-1}{N}}
+\] 
+The worst case is when there are only two values in the domain and all of the other entries in the database are one value except for one, then this gives us $N=2$, plugging it in to the above formula:
+\[\epsilon = \ln (\frac{3}{p_i} - 2)\]
+\end{proof}
+\fi
+
+\subsection{Numerical Attributes}
+We discussed the subtle de-randomization problem with numerical attributes in the previous section.
+We have to randomize the numerical attributes as well.
+However, in general, with numerical attributes $N = \mid R \mid$ making the randomized response model not meaningful.
+For such attributes, instead we use the following mechanism.
+For each numerical attribute $a_i$, 
+\[
+r'[a_i] = \mathbf{L}(r[a_i],b_i)
+\]
+Where $\mathbf{L}(\mu,b)$ is the Laplace distribution:
+\[
+\mathbf{L}(\mu,b) \sim \frac{1}{2b}\exp (\frac{\mid x - \mu\mid}{b})
+\]
+
+\begin{lemma}[Laplace Mechanism]
+The Laplace Mechanism is $\epsilon$-local differentially
+private, with $\epsilon = \frac{\Delta_i}{b_i}$. Where $\Delta_i$ is defined as the max
+difference between any two values in $\Pi(a_i)$.
+\end{lemma}
+
+\subsection{GRR Summary}
+To summarize, the GRR mechanism takes as input a set of numerical attributes $A$ and a set of partitioned discrete attributes $G$.
+For each partition $g_i$ there is a user-specified privacy parameter $p_i$ which is its randomization probability, and for each numerical attribute $a_i$ there is a parameter $b_i$ which is the amount of Laplace noise to add.
+For each numerical attribute, we apply the Laplace mechanism with $b_i$, and for each discrete attribute partition, we apply randomized response with probability $p_i$. 
+Using the composition lemma from Dwork et al., we prove the following result about the GRR Clean Mechanism:
+
+\begin{theorem}[Generalized Randomized Response]
+For a set of numerical and discrete attributes. The Generalized Randomized Response is an $\epsilon$ locally differentially private mechanism with $\epsilon = \sum_{n_i} \epsilon_{n_i} + \sum_{g_i} \epsilon_{g_i}$, where $\epsilon_a$ is appropriate calculated using the lemmas above.
+\end{theorem}
+
+\begin{example}
+For course evaluation example, suppose $p_0$ is probability $0.25$, and $b_0 = 50$.
+For the discrete attribute value $\epsilon = 2.3$ and for the numerical attribute $\epsilon=2$.
+The total privacy is $\epsilon = 4.3$.  
+\end{example}
+
+\subsection{Analysis}
+The efficacy of the GRR model for data cleaning relies on a property we call $\alpha$-error detectability which we formalized earlier.
+Due to randomization there is some probability that an error that affects one record will be masked, and we want to know how large the dataset needs to be before with high probability ($1-\alpha$) the erroneous value is seen even in the GRR view. 
+The corollary to this analysis is that $\alpha$ allows us to intuitively select $p_i$ and $b_i$ such that errors are detectable. 
+
+We first consider a lemma about the domain of a single discrete attribute partition $g_i$:
+\begin{lemma}
+For an attribute $g_i$, and a dataset size $S>\frac{N}{1-p_i}\ln(\frac{1}{\alpha})$, with probability $1-\alpha$ the domain is preserved. 
+\end{lemma}
+\iffalse
+\begin{proof}
+First, let us start with the
+probability that one value $x$ is not preserved:
+\[
+P[x\text{ is masked}]=\alpha=[\frac{p(N-1)}{N}]^{S}
+\]
+If we solve for $S$, apply the inequalities that $\frac{N-1}{N}\le1$
+and $ln(x)\le x-1$, we get
+\[
+\frac{\ln(\frac{1}{\alpha})}{1-p}\le S
+\]
+Then applying a union bound we get:
+\[
+\frac{N}{1-p}\ln(\frac{1}{\alpha})\le S
+\]
+\end{proof}
+\fi
+The lemma shows that increased privacy, namely increasing $p_i$, requires a larger dataset to ensure that all attribute values are seen in the GRR view.
+What is interesting is that this probability is linear in $\frac{1}{1-p}$ and the number of distinct values in the domain.
+
+We can apply a union bound over all of the attribute partitions:
+\begin{theorem}
+A dataset size of $S$ greater than:
+\[
+S\ge(\sum_{i}\frac{N_{i}}{1-p_{i}})\ln(\frac{1}{\alpha})
+\]
+ensures $\alpha$-error detectability.
+\end{theorem}
+\iffalse
+\begin{proof}
+We apply a union bound to arrive at the formula:
+\[
+S\ge(\sum_{i}\frac{N_{i}}{1-p_{i}})\ln(\frac{1}{\alpha})
+\]
+\end{proof}
+\fi
+
+\begin{example}
+For the course evaluation example, let us suppose $p_i$ is 0.25 and there are 25 distinct majors in the dirty relation. To have 95\% error detectability, we need approximately 100 records, and for 99\%, we need 154 records.
+\end{example}
+
+\subsection{Privacy Tuning}
+We can use the expression for $S$ to tune the privacy parameters $p$ and $b$. 
+In particular, can find the max $p$ for $1-\alpha$-error detectability.
+Then, we can set each $b_i$ such that each of the projections is at least as private the other attributes.
+
+%We can use this analysis to determine the maximum value of $p$ that allows for $\alpha$ error detectability:
+\begin{corollary}
+For a desired domain preservation probability $1-\alpha$, dataset size $S$,
+the maximum randomized response privacy parameter is $p_{max}=1-\frac{(1-\alpha)\sum_{i}N_{i}}{S}$.
+\end{corollary}
+\iffalse
+\begin{proof}
+\[
+\frac{\sum_{i}N}{1-p_{max}}\ln(\frac{1}{\alpha})\ge(\sum_{i}\frac{N_{i}}{1-p_{i}})\ln(\frac{1}{\alpha})
+\]
+\[
+\frac{\sum_{i}N}{1-p_{max}}\ln(\frac{1}{\alpha})=S
+\]
+\[
+\frac{1}{1-p_{max}}=\frac{S}{\ln(\frac{1}{\alpha})\sum_{i}N_i}
+\]
+\[
+p_{max}\ge1-(1-\alpha)\frac{\sum_{i}N_i}{S}
+\]
+\end{proof}
+\fi
+
+Using this analysis, we can arrive at the following tuning algorithm which ensures $1-\alpha$ error detectability and uniform privacy with the numerical attributes:
+\begin{enumerate}
+\item \textsf{Input: } Error detectability parameter $\alpha$.
+\item \textsf{Output: } For each $g_i \in G$ find $p_i$ and for each $a_i \in A$ find $b_i$.
+\item For each $g_i \in G$, find the number of distinct values $N_i$.
+\item Set all $p_i$ to $p = 1-(1-\alpha)\frac{\sum_{i}N_i}{S}$.
+\item For each $a_i \in A$, let $\min i$ be the minimum value and $\max i$ be the maximum value.
+\item Set all $b_i = \frac{(\min i - \max i)}{\ln (\frac{3}{p} - 2)}$ 
+\end{enumerate}
+
+In the rest of the paper, we will assume that $p_i$ and $b_i$ are given, either set by the tuning algorithm or user-specified.
+Furthermore, we will assume that the dataset is sufficiently larger to ensure $\alpha$-error detectability.
+
+
+

@@ -1,0 +1,113 @@
+\section{Introduction}
+An important class of analysis problems considers unstructured or semi-stectured textual context such as social media posts, web pages, open-ended forms.
+Increasingly, analysts want to perform \emph{quantitative analysis} on these textual sources including computing aggregate statistics of the entities mentioned, categorization into topics, building knowledge bases, and sentiment analysis.
+However, quantitative analysis of textual data is often error-prone due to inconsistent representations, missing data, or other corrupted data (i.e., errors in parsing).
+
+Data cleaning is a well studied field with a number of solutions to this problem such as entity resolution \cite{rahm2000data}, crowdsourcing \cite{park2014crowdfill}, rule-based consistency checks \cite{khayyat2015bigdansing}.  
+While there are several recent proposal for data cleaning at scale \cite{sampleclean, khayyat2015bigdansing, chu2015katara}, analysts report that it remains on of the most time consuming steps \cite{nytimes}.
+This is problematic in settings where data grow over time, as a database will have to be constantly cleaned to ensure accurate analysis.
+
+However, in a number of settings, data acquistion is an interactive process with a human in the loop such as in data collected from online forms.
+In these applications, it is possible to directly enforce data quality at the source.
+Consider the problem of parsing textual data from uploaded resumes.
+A simple format checker may ensure that all phone numbers listed conform to the same standard, and when this formatting is violated, it request the user to resubmit.
+Traditionally, such problems have been considered distinct from data cleaning, and in the realm of quality control in crowdsourcing and human computer interaction \cite{franklin2011crowddb,chen2011usher}.
+However, the definition of \emph{quality} is ultimately derived from the accuracy of downstream analysis.
+In this paper, we explore bridging these two perspectives, interactive interfaces that improve quality of data collected by humans and analyst-specified data cleaning, to address the problem of collecting and analyzing textual data.  
+
+Imagine if the data analyst was directly interviewing the source.
+She would be able to determine whether the source was providing useful information and guide the source towards providing the most useful information for her analysis.
+Now, imagine that this process was automated, where a system infers analysis from the analysts actions and guides a source interatively to provide higher quality data. 
+
+We consider the following problem where humans are contributing textual data to a growing database. 
+Let $R$ be a base relation which is a set of string-valued textual records collected from human input.
+An analyst applies a set of data transformations including cleaning and data analysis to $R$ and the result is a view $V$.
+Based on the transformation from $R$ to $V$, given a new textual record $r$ can we: (1) determine if $r$ will cause dirty data in $V$, and (2) if dirty, is there feedback we can provide to the human to mitigate the error. 
+
+This new perspective allows us to clean new types of errors guided by the data analysis.
+\begin{example}[Ambiguity]
+Suppose our analysis consists of categorizing open-ended responses from a market research survey:
+
+\vspace{0.5em}
+\noindent \texttt{
+What feature would you like to see in a new car?
+}
+\vspace{0.5em}
+
+Through time consuming analysis, the analyst transforms the responses into a view $V$ which is a relation of categories and corresponding counts e.g., ``Electric Seats", ``Fully Electric Motor". 
+Now, a new response arrives:
+
+\vspace{0.5em}
+\noindent \texttt{
+Electric
+}
+\vspace{0.5em}
+
+Ordinarily, this response would have to be discarded due to ambiguity.
+However, knowing the downstream analysis can allow us to understand this this new record will lead to an ambiguous downstream entity resolution problem, and the form can respond:
+
+\vspace{0.5em}
+\noindent \texttt{
+Can you be more specific? 
+}
+
+\end{example} 
+These examples become more interesting when the analysis extends to Machine Learning and NLP which are increasingly popular in text mining. 
+\begin{example}[Machine Learning]
+Consider a fraud detection application based on textual insurance claims where the view $V$ is a relation of words and probabilities that the row is fraudulent.
+Suppose a new row has a probability of $.55$ making it unclear whether it is fraudulent or not.
+A system that knows this analysis can reply to the user:
+
+\vspace{0.5em}
+\noindent \texttt{
+Can you tell me more about ______?
+}
+\vspace{0.5em}
+
+\end{example} 
+
+In other words, the downstream analysis should inform how upstream data acquisition interfaces collect data.
+The challenge is to formalize an expressive data transformation model between $R$ and $V$ that is sufficiently rich and can be analyzed.
+Many of the applications that can be facilitated by this model already exist, and in this work, we formalize a theoretical framework that generalizes a broad class of textual data analysis and cleaning.
+
+\section{Transformation Model}
+We itnroduced the model where a relation $R$ (a set of string) is transformed into a view $V$.
+In this section, we formalize the the transformation model.
+
+\noindent\textbf{Documents: } We refer to every row $r \in R$ as a \emph{document}. Every row $r$ is mapped to a relation $D$ which represents the document. $D(id,b_1,b_2,…,b_k)$.
+
+
+A document is a relation of k blocks (i.e, sentences, paragraphs etc.) D(id, b1,b2,…,bk). 
+E.g., A text box on a medicare claims form.
+
+Data sources add DOCUMENTS to a CORPUS.
+
+
+ 
+Each row (unique via id) in the relation is a word, whose attributes are either 1 or 0 depending on whether the word exists in the block. 
+E.g., suppose there is only one block this is a bag-of-words model
+
+A CORPUS is a database D(R1,R2,…,RN) over all the DOCUMENT relations.
+E.g., set of all collected text
+
+Analysis is formalized as a view of words or a subset words (consistent via id) and numerical attributes V(id,a1,a2,…,an). 
+E.g., Feature weights in Fraud model...general enough can also be counts per entity.
+
+Analysis consists of taking a new document Ri and applying a query to the view and the document Q(V,Ri). 
+E.g., predicting using the fraud model, is a join and aggregate (feature weights dot product with document), then a UDF.
+
+A document is “dirty”, if Q(V,Ri) satisfies some user specified condition e.g.,  0.25 < Q(V,Ri) < 0.75
+E.g., Inconclusive prediction…general enough to also be query does not contain exactly one entity in the table.
+
+Problem: Given two actions a(id,Ri,b) which adds a word to Ri (sets a 0 to 1) on block b and d(id, Ri, b) which deletes a word from Ri (sets a 1 to 0), what is
+the minimum sequence of actions e.g [a, a, d , d a] on Ri such that Q(V, Ri) is no longer dirty. This sequence of actions “becomes” the suggestion. —we can easily add more operations such as annotation.
+
+Challenges: This is a dynamic program, but the set of possible words is very large and this this is computationally infeasible, so you will have to restrict your search space to words correlated with those already in the document.
+
+
+
+
+
+
+
+

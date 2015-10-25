@@ -1,0 +1,60 @@
+\section{$\alpha$ Error Detectability}
+We first present analysis about the privacy mechanism itself, and how successfully an analyst can detect errors in a private relation.
+
+
+
+To analyze this, we first consider a lemma about the domain of a single attribute group:
+\begin{lemma}
+For a dataset size $S>\frac{N}{1-p}\ln(\frac{1}{\alpha})$, with probability
+$1-\alpha$ the domain is preserved. First, let us start with the
+probability that one value $x$ is not preserved:
+\[
+P[x\text{ is masked}]=\alpha=[\frac{p(N-1)}{N}]^{S}
+\]
+\end{lemma}
+\begin{proof}
+If we solve for $S$, apply the inequalities that $\frac{N-1}{N}\le1$
+and $ln(x)\le x-1$, we get
+\[
+\frac{\ln(\frac{1}{\alpha})}{1-p}\le S
+\]
+Then applying a union bound we get:
+\[
+\frac{N}{1-p}\ln(\frac{1}{\alpha})\le S
+\]
+\end{proof}
+
+Applying a union bound over the lemma we get:
+\begin{theorem}
+A dataset size of $S$ greater than:
+\[
+S\ge(\sum_{i}\frac{N_{i}}{1-p_{i}})\ln(\frac{1}{\alpha})
+\]
+ensures $\alpha$-error detectability.
+\end{theorem}
+\begin{proof}
+We apply a union bound to arrive at the formula:
+\[
+S\ge(\sum_{i}\frac{N_{i}}{1-p_{i}})\ln(\frac{1}{\alpha})
+\]
+\end{proof}
+
+We can use this analysis to determine the maximum value of $p$ that allows for $\alpha$ error detectability:
+\begin{corollary}
+For a desired domain preservation probability $1-\alpha$, dataset size $S$,
+the maximum randomized response privacy parameter is $p_{max}=1-\frac{(1-\alpha)\sum_{i}N_{i}}{S}$.
+\end{corollary}
+\begin{proof}
+\[
+\frac{\sum_{i}N}{1-p_{max}}\ln(\frac{1}{\alpha})\ge(\sum_{i}\frac{N_{i}}{1-p_{i}})\ln(\frac{1}{\alpha})
+\]
+\[
+\frac{\sum_{i}N}{1-p_{max}}\ln(\frac{1}{\alpha})=S
+\]
+\[
+\frac{1}{1-p_{max}}=\frac{S}{\ln(\frac{1}{\alpha})\sum_{i}N}
+\]
+\[
+p_{max}\ge1-(1-\alpha)\frac{\sum_{i}N}{S}
+\]
+\end{proof}

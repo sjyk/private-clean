@@ -1,0 +1,28 @@
+\section{Related Work}
+\sys is a framework for data cleaning and approximate query processing on differentially private relations.
+We highlight some of the relevant work below:
+
+\vspace{0.5em}
+
+\noindent\textbf{Randomized Response: } Even before the formalization of $\epsilon$-differential privacy, statistical notions of data privacy have been well studied. Warner proposed the randomized response model in 1965 \cite{warner1965randomized}. Some of the earliest work in the database community was on the topic of ``data swapping" to increase privacy\cite{DBLP:conf/pods/ReissPD82}, where projection of a relation are randomly swapped. This model was the inspiration to the seminal work by Agarwal and Srikant on Privacy Preserving Data Mining (PPDM) \cite{DBLP:conf/sigmod/AgrawalS00}. This work led to a number of other results such as algorithms for classification on private data \cite{DBLP:conf/kdd/DuZ03}, statistical reconstruction of a dataset \cite{DBLP:conf/sigmod/HuangDC05}. The contribution of our work, \sys, is to: (1) formalize a similar mechanism using the new mathematical framework of differential privacy, (2) understanding how data cleaning interacts with this model,  (3) tight finite-sample guarantees for SQL aggregate query processing on private relations. 
+
+\vspace{0.5em}
+
+\noindent\textbf{Privacy and Databases: } In general, privacy is one of the fundamental subjects of research in the database community\cite{DBLP:journals/cacm/JagadishGLPPRS14}. There are a number of surveys describing deterministic techniques for privacy preserving analytics \cite{DBLP:journals/csur/FungWCY10, DBLP:series/ads/AggarwalY08a}. These techniques include value aggregation, value suppression, and homeomorphic encryption \cite{DBLP:conf/sosp/PopaRZB11, sweeney2002achieving, machanavajjhala2007diversity, li2007t}.
+Recently, the $\epsilon$-differential privacy model~\cite{dwork2011differential} has renewed interest in privacy preserving analytics.
+This model is amenable to many statistical arguments which makes it a useful formalism.
+Recently, Yang et al.~\cite{DBLP:conf/sigmod/YangZMWX12} suggested that one of the biggest open problems with $\epsilon$-differential privacy is choosing $\epsilon$.
+In this work, we show that thinking about the cleanability of the data can inform the choice of $\epsilon$ for one particular mechanism.
+Differential privacy also has been studied in the context of database indexing~\cite{DBLP:conf/sigmod/PengYZWY12}.
+However, all of these works study a model where the base data is clean.
+That said, \sys only scratches the surface in the understanding of data error and privacy, and this is an important open problem that Getoor et al. described w.r.t entity resolution \cite{DBLP:journals/pvldb/GetoorM12}.
+
+\vspace{0.5em}
+
+\noindent\textbf{Approximate Query Processing: } Approximate query processing (AQP) is a well studied field~\cite{AgarwalMPMMS13, olken1993random, garofalakis2001approximate} in which results of aggregate queries are approximated from samples, wavelets, or sketches. The goal of AQP is to acheive tight bounds on the results of the aggregate queries. The link between AQP and differential privacy has been studied before, and Xiao et al.~\cite{DBLP:journals/tkde/XiaoWG11} explore the differentially private implications of wavelet transforms. Likewise, the link between AQP and data cleaning has been studied, where Wang et al. and Krishnan et al. \cite{wang1999sample,krishnan2015svc} show that samples of clean data can be used to estimate aggregate queries.
+\sys tries to make the final connection between AQP, data cleaning, and privacy.
+We show in a limited setting that bounded query results, data cleaning, and privacy are all achievable.
+ 
+
+
+
