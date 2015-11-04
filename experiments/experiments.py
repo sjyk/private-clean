@@ -38,9 +38,9 @@ def run_T_trials(trials=100,
 		avg_dresult = avgq(dataset, predicate=corruptpred,p=cprivacy,b=nprivacy)
 
 		if count_cresult[2] > 0:
-			sumr.append((sum_cresult[0],sum_dresult[1],sum_cresult[2],sum_dresult[2]))
-			countr.append((count_cresult[0],count_dresult[1],count_cresult[2],count_dresult[2]))
-			avgr.append((avg_cresult[0],avg_dresult[1],avg_cresult[2],avg_dresult[2]))
+			sumr.append((sum_cresult[0],sum_dresult[1],sum_cresult[2],sum_dresult[2],sum_cresult[1]))
+			countr.append((count_cresult[0],count_dresult[1],count_cresult[2],count_dresult[2],count_cresult[1]))
+			avgr.append((avg_cresult[0],avg_dresult[1],avg_cresult[2],avg_dresult[2],count_cresult[1]))
 
 	return (sumr,countr,avgr)
 
@@ -53,12 +53,13 @@ def l1_error(result_tuple, query='sum'):
 	else:
 		index = 2
 	
-	errors = [ [100*numpy.abs(r[0]-r[2])/max(r[2],1),100*numpy.abs(r[1]-r[2])/max(r[2],1),100*numpy.abs(r[3]-r[2])/max(r[2],1)] for r in result_tuple[index]]
+	errors = [ [100*numpy.abs(r[0]-r[2])/max(r[2],1),100*numpy.abs(r[1]-r[2])/max(r[2],1),100*numpy.abs(r[3]-r[2])/max(r[2],1),100*numpy.abs(r[4]-r[2])/max(r[2],1)] for r in result_tuple[index]]
 	
 	return (numpy.mean(errors,axis=0), numpy.std(errors,axis=0))
 
 def plot_parameter_sweep(exp_lambda,
 						 parameters,
+						 error=False,
 						 xaxis="",
 						 yaxis="",
 						 title="",
@@ -87,8 +88,8 @@ def plot_parameter_sweep(exp_lambda,
 		Y2.append(result[0][1])
 		E2.append(result[1][1])
 
-		Y3.append(result[0][2])
-		E3.append(result[1][2])
+		Y3.append(result[0][3])
+		E3.append(result[1][3])
 
 	rcParams.update({'font.size': 22})
 
@@ -96,8 +97,12 @@ def plot_parameter_sweep(exp_lambda,
         '/Library/Fonts/Microsoft/Gill Sans MT.ttf') 
 
 	plt.plot(X, Y1, 's-', linewidth=2.5,markersize=16,color='#3399FF')
-	plt.plot(X, Y2, 'o-', linewidth=2.5,markersize=16,color='#FF6666')
-	plt.plot(X, Y3, '--')
+
+	if not error:
+		plt.plot(X, Y2, 'o-', linewidth=2.5,markersize=16,color='#FF6666')
+	else:
+		plt.plot(X, Y3, 'o-', linewidth=2.5,markersize=16,color='#FF6666')
+	#plt.plot(X, Y3, '--')
 	plt.title(title,fontproperties=fprop)
 	plt.xlabel(xaxis,fontproperties=fprop)
 	plt.ylabel(yaxis,fontproperties=fprop)

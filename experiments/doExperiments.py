@@ -256,7 +256,7 @@ def experiment5():
 				 							   cskew=0.5,
 				 							   nskew=0.10),
 						 		  query="count"), 
-						 parameters=[50.0/10,100.0/10,150.0/10,200.0/10,500.0/10,750.0/10,1000],
+						 parameters=[50.0/10,150.0/10,250.0/10,400.0/10,500.0/10],
 						 title="(A) COUNT Accuracy",
 						 xaxis="Fraction Distinct (%)",
 						 yaxis="Error (%)",
@@ -274,7 +274,7 @@ def experiment5():
 				 							   cskew=0.5,
 				 							   nskew=0.10),
 						 		  query="sum"), 
-						 parameters=[50.0/10,100.0/10,150.0/10,200.0/10,500.0/10,750.0/10,1000],
+						 parameters=[50.0/10,150.0/10,250.0/10,400.0/10,500.0/10],
 						 title="(B) SUM Accuracy",
 						 xaxis="Fraction Distinct (%)",
 						 yaxis="Error (%)",
@@ -292,29 +292,137 @@ def experiment5():
 				 							   cskew=0.5,
 				 							   nskew=0.10),
 						 		  query="count"), 
-						 parameters=[50.0/10,100.0/10,150.0/10,200.0/10,500.0/10,750.0/10,1000],
+						 parameters=[50.0/10,150.0/10,250.0/10,400.0/10,500.0/10],
 						 title="(C) AVG Accuracy",
 						 xaxis="Fraction Distinct (%)",
 						 yaxis="Error (%)",
 						 filename="results/exp5c.png")
+
+"""
+#6
+Accuracy and Data Error
+"""
+def experiment6():
+	plot_parameter_sweep(lambda p: 
+						 l1_error(run_T_trials(trials=40,
+						 					   cprivacy=0.10,
+						 					   selectivity=0.25,
+						 					   errorrate=p*0.25/100,
+						 					   size=1000,
+											   nprivacy=0.001,
+											   distinct=50,
+				 							   cskew=0.10,
+				 							   nskew=0.10),
+						 		  query="count"), 
+						 parameters=[5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+						 title="(A) COUNT Accuracy",
+						 xaxis="Data Error Rate (%)",
+						 yaxis="Error (%)",
+						 filename="results/exp6a.png")
+
+
+	plot_parameter_sweep(lambda p: 
+						 l1_error(run_T_trials(trials=40,
+						 					   cprivacy=0.10,
+						 					   selectivity=0.25,
+						 					   errorrate=p*0.25/100,
+						 					   size=1000,
+											   nprivacy=0.001,
+											   distinct=50,
+				 							   cskew=0.10,
+				 							   nskew=0.10),
+						 		  query="sum"), 
+						 parameters=[5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+						 title="(B) SUM Accuracy",
+						 xaxis="Data Error Rate (%)",
+						 yaxis="Error (%)",
+						 filename="results/exp6b.png")
+
+
+	plot_parameter_sweep(lambda p: 
+						 l1_error(run_T_trials(trials=40,
+						 					   cprivacy=0.10,
+						 					   selectivity=0.25,
+						 					   errorrate=p*0.25/100,
+						 					   size=1000,
+											   nprivacy=0.001,
+											   distinct=50,
+				 							   cskew=0.10,
+				 							   nskew=0.10),
+						 		  query="avg"), 
+						 parameters=[5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+						 title="(C) AVG Accuracy",
+						 xaxis="Data Error Rate (%)",
+						 yaxis="Error (%)",
+						 filename="results/exp6c.png")
+
+"""
+#7
+Accuracy and Merge Data Error
+"""
+def experiment7():
+	plot_parameter_sweep(lambda p: 
+						 l1_error(run_T_trials(trials=100,
+						 					   cprivacy=0.10,
+						 					   selectivity=0.25,
+						 					   errorrate=.20*(p/200.0),
+						 					   size=1000,
+											   nprivacy=0.001,
+											   distinct=50,
+				 							   cskew=0.10,
+				 							   nskew=0.10),
+						 		  query="count"), 
+						 parameters=[0, 10, 20, 30,40, 50, 60, 70, 80, 90, 100],
+						 title="(A) COUNT Accuracy",
+						 xaxis="Merge Error Rate (%)",
+						 yaxis="Error (%)",
+						 filename="results/exp7a.png")
+
+
+	plot_parameter_sweep(lambda p: 
+						 l1_error(run_T_trials(trials=100,
+						 					   cprivacy=0.10,
+						 					   selectivity=0.25,
+						 					   errorrate=.20*(p/200.0),
+						 					   size=1000,
+											   nprivacy=0.001,
+											   distinct=50,
+				 							   cskew=0.10,
+				 							   nskew=0.10),
+						 		  query="sum"), 
+						 parameters=[0, 10, 20, 30,40, 50, 60, 70, 80, 90, 100],
+						 title="(B) SUM Accuracy",
+						 xaxis="Merge Error Rate (%)",
+						 yaxis="Error (%)",
+						 filename="results/exp7b.png")
+
+
+	plot_parameter_sweep(lambda p: 
+						 l1_error(run_T_trials(trials=100,
+						 					   cprivacy=0.10,
+						 					   selectivity=0.25,
+						 					   errorrate=.20*(p/200.0),
+						 					   size=1000,
+											   nprivacy=0.001,
+											   distinct=50,
+				 							   cskew=0.10,
+				 							   nskew=0.10),
+						 		  query="avg"), 
+						 parameters=[0, 10, 20, 30,40, 50, 60, 70, 80, 90, 100],
+						 title="(C) AVG Accuracy",
+						 xaxis="Merge Error Rate (%)",
+						 yaxis="Error (%)",
+						 filename="results/exp7c.png")
 
 def main():
 	#experiment1()
 	#experiment2()
 	#experiment3()
 	#experiment4()
-	experiment5()
+	#experiment5()
+	#experiment6()
+	#experiment7()
 
-
-"""
-	for t in range(0,1000):
-		p = numpy.random.rand(1)[0]
-		dataset = generate(S=round(10000*numpy.random.rand(1)+500),N=int(round(100*numpy.random.rand(1)+2)),p=p,b=1)
-		res = countq(dataset, predicate=range(0,int(round(49*numpy.random.rand(1)))),p=p)
-		#print res[0]-res[2],res[1]-res[2]
-		#arr1.append(numpy.abs(res[0]-res[2]))
-		#arr2.append(numpy.abs(res[1]-res[2]))
-"""
 
 """
 This script runs as the main
