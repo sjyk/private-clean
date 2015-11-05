@@ -414,6 +414,21 @@ def experiment7():
 						 yaxis="Error (%)",
 						 filename="results/exp7c.png")
 
+"""
+#8
+Error Detection
+"""
+def experiment8():
+	plot_level_set_sweep1(title="(A) Error Detection Skew", 
+						 yaxis="Probability", 
+						 xaxis="Distinct Fraction", 
+						 filename="results/exp8a.png")
+
+	plot_level_set_sweep2(title="(B) Error Detection Privacy", 
+						 yaxis="Probability", 
+						 xaxis="Privacy", 
+						 filename="results/exp8b.png")
+
 def main():
 	#experiment1()
 	#experiment2()
@@ -422,6 +437,7 @@ def main():
 	#experiment5()
 	#experiment6()
 	#experiment7()
+	experiment8()
 
 
 """

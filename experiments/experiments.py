@@ -44,6 +44,24 @@ def run_T_trials(trials=100,
 
 	return (sumr,countr,avgr)
 
+def run_T_detection_trials(trials=100,
+				 		   size=1000,
+				 		   cprivacy=0.1,
+				 		   nprivacy=1,
+				 		   distinct=10,
+				 		   cskew=0.33,
+				   		   nskew=0.33):
+
+	failure = 0
+	for t in range(0,trials):
+		dataset = generate(S=size,p=cprivacy,b=nprivacy,N=distinct,z1=cskew,z2=nskew)
+		res = distinct_count(dataset)
+		failure = failure + (res[0] == res[2])
+
+	return (failure+0.)/trials
+
+	
+
 def l1_error(result_tuple, query='sum'):
 	index = 0
 	if query == 'sum':
@@ -113,3 +131,88 @@ def plot_parameter_sweep(exp_lambda,
 	plt.grid(True)
 	plt.savefig(filename)
 
+def plot_level_set_sweep1(xaxis="",
+						 yaxis="",
+						 title="",
+						 filename="output.png"):
+	
+	import matplotlib.pyplot as plt
+	from matplotlib import font_manager, rcParams
+
+	rcParams.update({'font.size': 22})
+
+	fprop = font_manager.FontProperties(fname= 
+        '/Library/Fonts/Microsoft/Gill Sans MT.ttf') 
+
+	plt.figure()
+
+	X1 = [2,5,10,20,50,75,100,150,200,250,500,750,1000]
+	X2 = [1.0/5,1.0/4,1.0/3,1.0/2]
+	colors = ['#fdcc8a','#fc8d59','#de2d26','#b30000']
+
+	index = 0
+	for ox in X2:
+		Y = []
+		X = []
+		
+		for x in X1:
+			p = run_T_detection_trials(trials=100,distinct=x,cskew=ox)
+			Y.append(p)
+			X.append((x+0.)/1000)
+		
+		plt.plot(X, Y, linewidth=2.5,color=colors[index])
+		index = index + 1
+
+	#plt.plot(X, Y3, '--')
+	plt.title(title,fontproperties=fprop)
+	plt.xlabel(xaxis,fontproperties=fprop)
+	plt.ylabel(yaxis,fontproperties=fprop)
+	xticklabels = plt.getp(plt.gca(), 'xticklabels') 
+	xticklabels = plt.getp(plt.gca(), 'yticklabels') 
+	plt.setp(xticklabels, fontproperties=fprop) 
+	#plt.legend(['PrivateClean','Naive', 'Dirty'], loc='upper left')
+	plt.grid(True)
+	plt.savefig(filename)
+
+def plot_level_set_sweep2(xaxis="",
+						 yaxis="",
+						 title="",
+						 filename="output.png"):
+	
+	import matplotlib.pyplot as plt
+	from matplotlib import font_manager, rcParams
+
+	rcParams.update({'font.size': 22})
+
+	fprop = font_manager.FontProperties(fname= 
+        '/Library/Fonts/Microsoft/Gill Sans MT.ttf') 
+
+	plt.figure()
+
+	X1 = [2,5,10,20,50,75,100,150,200,250,500,750,1000]
+	X2 = [0.05,0.1,0.25,0.5]
+	colors = ['#fdcc8a','#fc8d59','#de2d26','#b30000']
+
+	index = 0
+	for ox in X2:
+		Y = []
+		X = []
+		
+		for x in X1:
+			p = run_T_detection_trials(trials=100,distinct=x,cprivacy=ox)
+			Y.append(p)
+			X.append((x+0.)/1000)
+		
+		plt.plot(X, Y, linewidth=2.5,color=colors[index])
+		index = index + 1
+
+	#plt.plot(X, Y3, '--')
+	plt.title(title,fontproperties=fprop)
+	plt.xlabel(xaxis,fontproperties=fprop)
+	plt.ylabel(yaxis,fontproperties=fprop)
+	xticklabels = plt.getp(plt.gca(), 'xticklabels') 
+	xticklabels = plt.getp(plt.gca(), 'yticklabels') 
+	plt.setp(xticklabels, fontproperties=fprop) 
+	#plt.legend(['PrivateClean','Naive', 'Dirty'], loc='upper left')
+	plt.grid(True)
+	plt.savefig(filename)
